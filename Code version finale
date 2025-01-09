@@ -1,0 +1,230 @@
+# Importer les dataframes
+library(readxl)
+
+Description_plats <- read_excel("C:/Users/PC/Documents/Cours/Master/S1/Analyse de données/projet/Descriptions_Plats_fossile.xlsx")
+Entrees_triees <- read_excel("C:/Users/PC/Documents/Cours/Master/S1/Analyse de données/projet/Entrees_fossile.xlsx")
+Viandes_triees <- read_excel("C:/Users/PC/Documents/Cours/Master/S1/Analyse de données/projet/Viandes_fossile.xlsx")
+Desserts_triees <- read_excel("C:/Users/PC/Documents/Cours/Master/S1/Analyse de données/projet/Desserts_fossile.xlsx")
+Boissons_triees <- read_excel("C:/Users/PC/Documents/Cours/Master/S1/Analyse de données/projet/Boissons_fossile.xlsx")
+################################################################################
+# Test de personnalité
+
+# Questionnaire sur les préférences culinaires avec dataframe
+
+# Correspondances des types de personnalité :
+
+# Aventurier
+# Traditionnaliste
+# Gourmet
+# Minimaliste
+# Fêtard
+# Épicurien
+
+
+questions <- c(
+  "1. Vous aimez explorer des endroits inconnus, même sans plan précis.",
+  "2. Vous trouvez du confort dans les routines bien établies et les traditions.",
+  "3. Essayer de nouveaux plats ou cuisines exotiques est un plaisir pour vous.",
+  "4. Vous aimez simplifier les choses dans votre vie, en évitant l’encombrement et le superflu.",
+  "5. Passer la nuit à faire la fête entre amis est l’un de vos passe-temps favoris.",
+  "6. Vous préférez dépenser votre temps et argent sur des expériences plutôt que sur des objets matériels.",
+  "7. Déguster un bon repas accompagné d'un bon vin est une expérience incontournable pour vous."
+)
+
+# Poids des réponses par question pour chaque personnalité
+weights <- list(
+  Aventurier = c(3,-1,0,0,0,2,0),
+  Traditionnaliste = c(-1,4,-1,-2,1,0,0,2),
+  Gourmet = c(0,0,2,-1,0,1,2),
+  Minimaliste = c(0,0,0,3,0,1,0),
+  Fetard = c(1,-1,0,-1,4,0,1),
+  Epicurien = c(0,0,1,0,0,0,3) # Poids pour la personnalité Épicurien
+)
+
+# Fonction pour poser une question et recueillir la réponse
+ask_question <- function(question) {
+  cat(question, "\n")
+  cat("Répondez par : 1 = D'accord, 2 = Plutôt d'accord, 3 = Indifférent, 4 = Plutôt en désaccord, 5 = En désaccord\n")
+  answer <- as.numeric(readline(prompt = "Votre réponse : "))
+  while (is.na(answer) || answer < 1 || answer > 5) {
+    cat("Veuillez entrer un chiffre entre 1 et 5.\n")
+    answer <- as.numeric(readline(prompt = "Votre réponse : "))
+  }
+  return(6 - answer) # Convertir en score (D'accord = 5, En désaccord = 1)
+}
+
+# Initialiser les scores des personnalités
+scores <- setNames(rep(0, length(weights)), names(weights))
+
+# Poser les questions et calculer les scores
+for (i in seq_along(questions)) {
+  response <- ask_question(questions[i])
+  for (personality in names(weights)) {
+    scores[personality] <- scores[personality] + weights[[personality]][i] * response
+  }
+}
+
+# Identifier la personnalité principale et secondaire
+sorted_scores <- sort(scores, decreasing = TRUE)
+main_personality <- names(sorted_scores)[1]
+secondary_personality <- names(sorted_scores)[2]
+
+################################################################################
+# resultats du test de personnalité
+
+# Description des personnalités
+personality_descriptions <- list(
+  Aventurier = "Vous êtes curieux(se) et aimez explorer de nouvelles expériences et lieux, souvent sans plan précis. Vous vivez pour l’excitation et la découverte.",
+  Traditionnaliste = "Vous trouvez du confort et de la sécurité dans les routines, les valeurs familiales, et les traditions bien établies.",
+  Gourmet = "Vous adorez explorer les saveurs, découvrir des cuisines exotiques, et savourer des plats bien préparés.",
+  Minimaliste = "Vous privilégiez la simplicité et l’essentiel, en évitant l’encombrement matériel et en vous concentrant sur ce qui compte vraiment.",
+  Fetard = "Vous aimez profiter des moments festifs entre amis, sortir, et vivre pleinement la vie sociale.",
+  Epicurien = "Vous appréciez les plaisirs raffinés de la vie, notamment de bons repas, des vins de qualité, et des moments de détente gourmande."
+)
+
+# Afficher les résultats avec explications
+cat("\n### Résultats ###\n")
+cat("Votre personnalité principale est :", main_personality, "-", personality_descriptions[[main_personality]], "\n")
+cat("On dirait que vous avez un petit côté caché qui se manifeste en vous ! Votre personnalité secondaire est :", secondary_personality, "-", personality_descriptions[[secondary_personality]], "\n")
+
+################################################################################
+# Entrées
+
+# Extraire les entrées en fonction de la personnalité directement depuis le dataframe
+if (main_personality %in% colnames(Entrees_triees)) {
+  selected_entrees <-Entrees_triees[[main_personality]] # Extraire la colonne correspondant à la personnalité
+  selected_entrees <- na.omit(selected_entrees) # Supprimer les valeurs NA, si nécessaire
+  
+  # Afficher les entrées proposées
+  cat("\nEtant un(e)", main_personality, ", je vous propose les entrées suivantes :", 
+      paste(selected_entrees, collapse = " ou "), "\n")
+  
+  # Demander si l'utilisateur veut des explications
+  response <- readline(prompt = "Souhaitez-vous des explications sur ces entrées ? (Oui/Non) : ")
+  
+  if (tolower(response) == "oui") {
+    # Rechercher les descriptions des entrées dans le dataframe des descriptions
+    entrees_descriptions <- Description_plats[Description_plats$nom_plat %in% selected_entrees, ]
+    
+    if (nrow(plats_descriptions) > 0) {
+      cat("\nVoici les descriptions des entrées proposées :\n")
+      for (i in 1:nrow(entrees_descriptions)) {
+        cat(entrees_descriptions$nom_entree[i], ":", entrees_descriptions$description[i], "\n")
+      }
+    } else {
+      cat("\nDésolé, aucune description disponible pour les entrées sélectionnées.\n")
+    }
+  } else {
+    cat("\nTrès bien ! Bon appétit !\n")
+  }
+} else {
+  cat("\nDésolé, aucune colonne trouvée pour la personnalité :", main_personality, "\n")
+}
+
+################################################################################
+# Desserts
+# Extraire les desserts en fonction de la personnalité directement depuis le dataframe
+if (main_personality %in% colnames(Desserts_triees)) {
+  selected_desserts <- Desserts_triees[[main_personality]] # Extraire la colonne correspondant à la personnalité
+  selected_desserts <- na.omit(selected_desserts) # Supprimer les valeurs NA, si nécessaire
+  
+  # Afficher les desserts proposés
+  cat("\nEtant un(e)", main_personality, ", je vous propose les desserts suivants :", 
+      paste(selected_desserts, collapse = " ou "), "\n")
+  
+  # Demander si l'utilisateur veut des explications
+  response <- readline(prompt = "Souhaitez-vous des explications sur ces desserts ? (Oui/Non) : ")
+  
+  if (tolower(response) == "oui") {
+    # Rechercher les descriptions des desserts dans le dataframe des descriptions
+    dessert_descriptions <- Description_plats[Description_plats$nom_plat %in% selected_desserts, ]
+    
+    if (nrow(dessert_descriptions) > 0) {
+      cat("\nVoici les descriptions des desserts proposés :\n")
+      for (i in 1:nrow(dessert_descriptions)) {
+        cat(dessert_descriptions$nom_plat[i], ":", dessert_descriptions$description[i], "\n")
+      }
+    } else {
+      cat("\nDésolé, aucune description disponible pour les desserts sélectionnés.\n")
+    }
+  } else {
+    cat("\nTrès bien ! Bon appétit !\n")
+  }
+} else {
+  cat("\nDésolé, aucune colonne trouvée pour la personnalité :", main_personality, "\n")
+}
+
+################################################################################
+# Plats (Viandes)
+
+# Extraire les Plats en fonction de la personnalité directement depuis le dataframe
+if (main_personality %in% colnames(Viandes_triees)) {
+  selected_plats <- Viandes_triees[[main_personality]] # Extraire la colonne correspondant à la personnalité
+  selected_plats <- na.omit(selected_plats) # Supprimer les valeurs NA, si nécessaire
+  
+  # Afficher les desserts proposés
+  cat("\nEtant un(e)", main_personality, ", je vous propose les plats suivants :", 
+      paste(selected_plats, collapse = " ou "), "\n")
+  
+  # Demander si l'utilisateur veut des explications
+  response <- readline(prompt = "Souhaitez-vous des explications sur ces plats ? (Oui/Non) : ")
+  
+  if (tolower(response) == "oui") {
+    # Rechercher les descriptions des plats dans le dataframe des descriptions
+    plats_descriptions <- Description_plats[Description_plats$nom_plat %in% selected_plats, ]
+    
+    if (nrow(plats_descriptions) > 0) {
+      cat("\nVoici les descriptions des plats proposés :\n")
+      for (i in 1:nrow(plats_descriptions)) {
+        cat(plats_descriptions$nom_plat[i], ":", plats_descriptions$description[i], "\n")
+      }
+    } else {
+      cat("\nDésolé, aucune description disponible pour les plats sélectionnés.\n")
+    }
+  } else {
+    cat("\nTrès bien ! Bon appétit !\n")
+  }
+} else {
+  cat("\nDésolé, aucune colonne trouvée pour la personnalité :", main_personality, "\n")
+}
+
+################################################################################
+# Boissons
+
+response <- readline(prompt = "Souhaitez-vous boire de l'alcool ? (Oui/Non) : ")
+
+if (response == "Oui") {
+  selected_boissons <- Boissons_triees[Boissons_triees$Alcool == 1, ]
+  } else {
+  selected_boissons <- Boissons_triees[Boissons_triees$Alcool == 0, ]
+}
+# Extraire les boissons en fonction de la personnalité directement depuis le dataframe
+if (secondary_personality %in% colnames(selected_boissons)) {
+  selected_boissons <- selected_boissons[[main_personality]] # Extraire la colonne correspondant à la personnalité
+  selected_boissons <- na.omit(selected_boissons) # Supprimer les valeurs NA, si nécessaire
+  
+  # Afficher les desserts proposés
+  cat("Puisque votre personnalité secondaire est", secondary_personality, ", je vous propose les boissons suivantes :", 
+      paste(selected_boissons, collapse = " ou "), "\n")
+  
+  # Demander si l'utilisateur veut des explications
+  response <- readline(prompt = "Souhaitez-vous des explications sur ces plats ? (Oui/Non) : ")
+  
+  if (tolower(response) == "oui") {
+    # Rechercher les descriptions des plats dans le dataframe des descriptions
+    plats_descriptions <- Description_plats[Description_plats$nom_plat %in% selected_boissons, ]
+    
+    if (nrow(plats_descriptions) > 0) {
+      cat("\nVoici les descriptions des plats proposés :\n")
+      for (i in 1:nrow(plats_descriptions)) {
+        cat(plats_descriptions$nom_plat[i], ":", plats_descriptions$description[i], "\n")
+      }
+    } else {
+      cat("\nDésolé, aucune description disponible pour les plats sélectionnés.\n")
+    }
+  } else {
+    cat("\nTrès bien ! Bon appétit !\n")
+  }
+} else {
+  cat("\nDésolé, aucune colonne trouvée pour la personnalité :", secondary_personality, "\n")
+}
