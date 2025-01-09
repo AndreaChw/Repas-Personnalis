@@ -1,4 +1,4 @@
-# Repas-Personnalis
+# Repas-Personnalisé
 Projet en Analyse de données 
 Andrea Chahwan (ETIC)
 Niclette Ndaya Nsabua (MPE)
