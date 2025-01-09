@@ -1,0 +1,212 @@
+---
+title: "Bienvenue au restaurant *Le Fossile*, qu'allez-vous manger ce soir ?"
+date: "2025-01-09"
+author: "Chahwan, Ndaya Nsabua, Delpont"
+output: slidy_presentation
+---
+---
+
+# Introduction
+
+- Objectif du projet :
+  - Déterminer le type de personnalité de l'utilisateur
+  - Proposer un menu personnalisé
+
+- Méthodologie :
+  - Recherche des données & Création des bases de données
+  - Test de personnalité
+  - Sélection
+
+---
+
+# Construction de la base de données
+## Méthode considérées & problèmes envisagés
+Utiliser une IA (e.g. Gemini, ChatGPT) pour créer une base de donnée à partir du fichier d'un menu (PDF). La réponse serait demandée sous format CSV ou XLS.
+ - Méthodes :
+ 
+   - API (e.g. OpenAI) --> payante
+   
+   - Integration d'une NPL open source (comme Stanford NLP Group) dans R
+   
+     - Problème : Mauvaise version de Java
+     
+   - Création d'un bot qui fait une requette à une IA
+  
+     - L'IA propose des réponses non standards
+     
+     - Nécessiterait un bot plus avancé pour identifier la bonne information dans le message
+
+---
+
+# Construction de la base de données
+## Méthode adoptée
+Créer notre propre base de donnée en se basant sur le menu du restaurant strasbourgois **Le Fossile**.
+
+---
+
+# Importation des Données
+
+- Les fichiers utilisés :
+  - Descriptions des plats : caractéristiques des desserts, viandes, boissons, etc.
+  - Menus triés par type (entrées, viandes, desserts, boissons).
+
+- Formats utilisés : Excel.
+
+- Exemple de structure de données :
+
+![Base de données des desserts triées par personnalité](C:/Users/PC/Documents/Cours/Master/S1/Analyse de données/projet/desserts.jpg){width=100%}
+
+---
+
+![Base de données des plats avec leurs descriptions](C:/Users/PC/Documents/Cours/Master/S1/Analyse de données/projet/description.jpg){width=100%}
+
+---
+
+## Test de personnalité.
+
+Nous avons déterminé 6 types de personnalité :
+
+ - Aventurier
+ 
+ - Traditionnaliste
+ 
+ - Gourmet
+ 
+ - Minimaliste
+ 
+ - Fêtard
+ 
+ - Épicurien
+ 
+---
+
+## Déroulé du test
+
+Le programme propose 7 affirmations, par exemple : 
+
+ - *1. Vous aimez explorer des endroits inconnus, même sans plan précis.*
+ 
+ - *2. Vous trouvez du confort dans les routines bien établies et les traditions.*
+
+Exemple de ce à quoi le code ressemble pour l'utilisateur :
+
+```
+> # Poser les questions et calculer les scores
+> for (i in seq_along(questions)) {
++   response <- ask_question(questions[i])
++   for (personality in  .... [TRUNCATED] 
+1. Vous aimez explorer des endroits inconnus, même sans plan précis. 
+Répondez par : 1 = D'accord, 2 = Plutôt d'accord, 3 = Indifférent,
+4 = Plutôt en désaccord, 5 = En désaccord
+
+Votre réponse : 1
+```
+---
+
+## Le Système de poids
+
+Chaque personnalité est associée à un vecteur de poids :
+![Tableau-des-poids](C:/Users/PC/Documents/Cours/Master/S1/Analyse de données/projet/poids.jpg){width=100%}
+
+Erreur que nous avons fait :
+
+ - Somme des poids des personnalités inégales
+
+---
+
+## Calcul des scores
+On fait donc la somme pondérée des réponses pour chaque personnalité.
+Puis tri des personnalités en fonction de leur score :
+
+ - Personnalité avec le plus haut score : ```main_personnality```
+ 
+ - Personnalité avec le second plus haut score : ```secondary_personnality```
+
+```
+Votre personnalité principale est : Fetard - Vous aimez profiter des 
+moments festifs entre amis, sortir, et vivre pleinement la vie sociale. 
+
+On dirait que vous avez un petit côté caché qui se manifeste en vous ! Votre 
+personnalité secondaire est : Aventurier - Vous êtes curieux(se) et aimez 
+explorer de nouvelles expériences et lieux, souvent sans plan précis. Vous 
+vivez pour l’excitation et la découverte.
+
+```
+---
+
+## Sélection des plats en fonction de la personnalité
+
+Dans cette partie, le code propose des entrées, des plats et desserts en fonction de la personnalité principale ```[main_personality]``` d'un utilisateur. Les recommandations sont enrichies par des descriptions.
+
+### 1.Recommandation des plats 
+
+#### *Extraction des données*
+
+On vérifie si ```[main_personality]``` correspond à une colonne du dataframe ```(Entrees_triees)```, ```(Desserts_triees)``` ou ```(Viandes_triees)```. Si oui, les plats associés à cette personnalité sont extraites et les valeurs manquantes sont éliminées avec ```na.omit()```.Et les plats sont affichées à l'utilisateur
+
+---
+
+#### *Explications* 
+Si l'utilisateur le souhaite (réponse ```"Oui"```), des descriptions des plats sont recherchées dans le dataframe ```Description_plats``` est affichées
+
+Exemple code avec les entrées :
+```
+selected_entrees <-Entrees_triees[[main_personality]]
+selected_entrees <- na.omit(selected_entrees)
+entrees_descriptions <- Description_plats[Description_plats$nom_plat %in% selected_entrees, ]
+```
+
+---
+
+### 2.Recommandation des boissons
+
+#### *Filtrage par alcool* 
+
+L'utilisateur indique s'il souhaite consommer de l'alcool. Selon sa réponse , les boissons correspondantes sont filtrées dans le dataframe ```Boissons_triees``` (en fonction de la colonne Alcool).
+
+#### *Personnalité secondaire*
+
+Les boissons sont filtrées en fonction de ```secondary_personality```, contrairement aux plats qui l'étaient en fonction de ```main_personality```
+Si demandé, des descriptions des boissons sont affichées.
+
+
+---
+
+### 3.Gestion des erreurs 
+
+Si la personnalité (secondary_personality ou main_personality)n'est pas trouvée dans les colonnes des dataframes, un message d'erreur est affiché pour informer l'utilisateur
+
+Si aucune description n'est disponible, un message est affiché pour informer l'utilisateur
+
+---
+
+### 4.Fonctionnalités interactives
+
+Le programme utilise  readline()  pour obtenir des réponses de l'utilisateur de manière interactive :
+
+Si l'utilisateur souhaite des explications sur les plats.
+
+Si l'utilisateur souhaite consommer de l'alcool pour les boissons.
+
+Code :
+```
+response <- readline(prompt = "Souhaitez-vous des explications sur ces plats ? (Oui/Non) : ")
+  
+  if (tolower(response) == "oui") {
+    # Rechercher les descriptions
+    ...
+```
+
+---
+
+## Conclusion :
+*Force :*
+
+ - Flexibilité du code grâce au 6 personnalités différentes.
+ 
+ - Pourrait être adapté à n'importe quel restaurant ou test de personnalité.
+
+*Limites :*
+
+  - Bases de données créées manuellement donc de taille limitée.
+
