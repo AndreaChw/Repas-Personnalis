@@ -26,7 +26,7 @@ Utiliser une IA (e.g. Gemini, ChatGPT) pour créer une base de donnée à partir
  
    - API (e.g. OpenAI) --> payante
    
-   - Integration d'une NPL open source (comme Stanford NLP Group) dans R
+   - Integration d'une NLP open source (comme Stanford NLP Group) dans R
    
      - Problème : Mauvaise version de Java
      
