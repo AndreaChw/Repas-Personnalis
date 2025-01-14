@@ -106,46 +106,13 @@ if (main_personality %in% colnames(Entrees_triees)) {
     # Rechercher les descriptions des entrées dans le dataframe des descriptions
     entrees_descriptions <- Description_plats[Description_plats$nom_plat %in% selected_entrees, ]
     
-    if (nrow(plats_descriptions) > 0) {
+    if (nrow(entrees_descriptions) > 0) {
       cat("\nVoici les descriptions des entrées proposées :\n")
       for (i in 1:nrow(entrees_descriptions)) {
-        cat(entrees_descriptions$nom_entree[i], ":", entrees_descriptions$description[i], "\n")
+        cat(entrees_descriptions$nom_plat[i], ":", entrees_descriptions$description[i], "\n")
       }
     } else {
       cat("\nDésolé, aucune description disponible pour les entrées sélectionnées.\n")
-    }
-  } else {
-    cat("\nTrès bien ! Bon appétit !\n")
-  }
-} else {
-  cat("\nDésolé, aucune colonne trouvée pour la personnalité :", main_personality, "\n")
-}
-
-################################################################################
-# Desserts
-# Extraire les desserts en fonction de la personnalité directement depuis le dataframe
-if (main_personality %in% colnames(Desserts_triees)) {
-  selected_desserts <- Desserts_triees[[main_personality]] # Extraire la colonne correspondant à la personnalité
-  selected_desserts <- na.omit(selected_desserts) # Supprimer les valeurs NA, si nécessaire
-  
-  # Afficher les desserts proposés
-  cat("\nEtant un(e)", main_personality, ", je vous propose les desserts suivants :", 
-      paste(selected_desserts, collapse = " ou "), "\n")
-  
-  # Demander si l'utilisateur veut des explications
-  response <- readline(prompt = "Souhaitez-vous des explications sur ces desserts ? (Oui/Non) : ")
-  
-  if (tolower(response) == "oui") {
-    # Rechercher les descriptions des desserts dans le dataframe des descriptions
-    dessert_descriptions <- Description_plats[Description_plats$nom_plat %in% selected_desserts, ]
-    
-    if (nrow(dessert_descriptions) > 0) {
-      cat("\nVoici les descriptions des desserts proposés :\n")
-      for (i in 1:nrow(dessert_descriptions)) {
-        cat(dessert_descriptions$nom_plat[i], ":", dessert_descriptions$description[i], "\n")
-      }
-    } else {
-      cat("\nDésolé, aucune description disponible pour les desserts sélectionnés.\n")
     }
   } else {
     cat("\nTrès bien ! Bon appétit !\n")
@@ -180,6 +147,39 @@ if (main_personality %in% colnames(Viandes_triees)) {
       }
     } else {
       cat("\nDésolé, aucune description disponible pour les plats sélectionnés.\n")
+    }
+  } else {
+    cat("\nTrès bien ! Bon appétit !\n")
+  }
+} else {
+  cat("\nDésolé, aucune colonne trouvée pour la personnalité :", main_personality, "\n")
+}
+
+################################################################################
+# Desserts
+# Extraire les desserts en fonction de la personnalité directement depuis le dataframe
+if (main_personality %in% colnames(Desserts_triees)) {
+  selected_desserts <- Desserts_triees[[main_personality]] # Extraire la colonne correspondant à la personnalité
+  selected_desserts <- na.omit(selected_desserts) # Supprimer les valeurs NA, si nécessaire
+  
+  # Afficher les desserts proposés
+  cat("\nEtant un(e)", main_personality, ", je vous propose les desserts suivants :", 
+      paste(selected_desserts, collapse = " ou "), "\n")
+  
+  # Demander si l'utilisateur veut des explications
+  response <- readline(prompt = "Souhaitez-vous des explications sur ces desserts ? (Oui/Non) : ")
+  
+  if (tolower(response) == "oui") {
+    # Rechercher les descriptions des desserts dans le dataframe des descriptions
+    dessert_descriptions <- Description_plats[Description_plats$nom_plat %in% selected_desserts, ]
+    
+    if (nrow(dessert_descriptions) > 0) {
+      cat("\nVoici les descriptions des desserts proposés :\n")
+      for (i in 1:nrow(dessert_descriptions)) {
+        cat(dessert_descriptions$nom_plat[i], ":", dessert_descriptions$description[i], "\n")
+      }
+    } else {
+      cat("\nDésolé, aucune description disponible pour les desserts sélectionnés.\n")
     }
   } else {
     cat("\nTrès bien ! Bon appétit !\n")
